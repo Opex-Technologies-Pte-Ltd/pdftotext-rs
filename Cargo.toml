@@ -1,0 +1,83 @@
+[package]
+name = "pdftotext"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+repository = "https://github.com/Opex-Technologies-Pte-Ltd/pdftotext-rs"
+readme = "README.md"
+keywords = ["pdf", "text-extraction", "pdftotext", "wasm", "cjk"]
+categories = ["text-processing", "command-line-utilities", "wasm"]
+description = "Clean-room PDF text extraction (ISO 32000-2) that reads equipment manuals correctly. Drop-in for poppler's pdftotext CLI; also builds to WebAssembly."
+license = "Apache-2.0"
+
+# Drop-in binary target named exactly `pdftotext`, like poppler's.
+[[bin]]
+name = "pdftotext"
+path = "src/main.rs"
+
+# Library target exposes internals for integration tests + parity harness.
+[lib]
+name = "pdftotext"
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]
+
+# lopdf provides the object/xref/stream/decryption layer (clean-room, MIT).
+# Stream decoding is ours (src/reader): flate2 inflates FlateDecode under a hard
+# output cap, and lopdf's bounded decoder handles LZW/ASCII85 chains.
+[dependencies]
+flate2 = "1"
+# CCITT G3/G4 decoding for fax-style scanned manuals (MIT); see src/reader/fax.rs.
+fax = "0.3"
+# JBIG2 decoding for scanned manuals (Apache-2.0 OR MIT); see src/reader/jbig2.rs.
+# No default features: `image` pulls the image crate, `simd` unsafe SIMD code.
+hayro-jbig2 = { version = "0.4", default-features = false, features = ["std"] }
+crc32fast = "1"
+
+# lopdf is target-specific so the wasm build can drop its default features
+# (chrono/jiff/rayon/time) and enable `wasm_js` (getrandom JS backend) without
+# cargo feature-unification re-enabling them from a general entry. flate2 stays
+# general — its default backend is pure-Rust miniz_oxide on every target.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+lopdf = "0.44" # full defaults; chrono/rayon/time are harmless on host
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+# Slim lopdf + JS bridge for WebAssembly (see src/wasm.rs).
+lopdf = { version = "0.44", default-features = false, features = ["wasm_js"] }
+wasm-bindgen = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde-wasm-bindgen = "0.6"
+console_error_panic_hook = "0.1"
+
+# wasm-pack runs binaryen's `wasm-opt -O` on the release wasm by default. It
+# chokes on wasm-bindgen 0.2's reference-types/externref output, and its size
+# win over the release profile (opt-level=s + lto + strip) is marginal — so
+# disable it and avoid a binaryen-version dependency on every build host.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"
+
+# lopdf 0.44.0 with one fix in the encrypted-document loader: it now applies
+# the load filter (so image/font payloads and annotations are dropped, as for
+# unencrypted files) and releases each object's raw copy as soon as it is
+# parsed (lower peak memory while loading). Vendor manuals are often encrypted
+# with an owner (permissions) password. Upstream PR:
+# https://github.com/J-F-Liu/lopdf/pull/671 -- drop this once released.
+[patch.crates-io]
+lopdf = { path = "vendor/lopdf" }
+
+# The JBIG2 codec is ~50x slower unoptimised; a 600-dpi page takes seconds in
+# a debug test build otherwise.
+[profile.dev.package.hayro-jbig2]
+opt-level = 3
+
+[profile.dev.package.hayro-ccitt]
+opt-level = 3
+
+[profile.dev.package.miniz_oxide]
+opt-level = 3

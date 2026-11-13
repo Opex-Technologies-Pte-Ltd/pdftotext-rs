@@ -1,0 +1,6 @@
+pdftotext-rs
+Copyright 2026 Opex Technologies Pte. Ltd.
+
+This product includes data from the Adobe Glyph List and the Adobe CMap
+resources (Copyright Adobe, BSD-3-Clause), and a modified copy of lopdf
+(MIT). See THIRD_PARTY.md.
