@@ -11,6 +11,10 @@ for [OpexMX](https://mx.opexcg.com), a maintenance management system whose
 assistant answers technicians' questions from their equipment manuals.
 Licensed Apache-2.0, with no GPL code and no shared libraries.
 
+**Try it in your browser:** the [Manual Text Checker](https://mx.opexcg.com/tools/manual-text-checker)
+runs this extractor (compiled to WebAssembly) next to pdf.js on a PDF you drop
+in. The file never leaves your machine.
+
 ## Why equipment manuals break ordinary extractors
 
 A manual looks like text on screen, but the PDF underneath is made for
