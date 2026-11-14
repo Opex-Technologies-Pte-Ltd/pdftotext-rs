@@ -9,8 +9,8 @@
 //! XObjects it invokes) tracking only the CTM, and reports every image XObject
 //! painted with `Do`: its pixel size, filters, colour space, where it lands on
 //! the page, and, for JPEG (`DCTDecode`) and JPEG 2000 (`JPXDecode`), the
-//! encoded bytes. CCITT fax and JBIG2 images are decoded to a 1-bit PNG
-//! (`fax.rs`, `jbig2.rs`). Other codecs (Flate, uncompressed) are reported
+//! encoded bytes. CCITT fax and JBIG2 images are decoded to a PNG (`fax.rs`,
+//! `jbig2.rs`; 1-bit, or 8-bit gray when shrunk, see `png.rs`). Other codecs (Flate, uncompressed) are reported
 //! with metadata only; the caller decides whether to rasterise them elsewhere.
 //!
 //! Needs a document from [`Document::parse_keeping_images`]: the default parse
@@ -159,8 +159,9 @@ pub struct PageImage {
     pub coverage: f64,
     /// Stored (still encoded) payload size.
     pub encoded_len: usize,
-    /// The image file, when available: the stored JPEG / JPEG 2000, or a 1-bit
-    /// PNG decoded from a CCITT fax or JBIG2 image. See `format`.
+    /// The image file, when available: the stored JPEG / JPEG 2000, or a
+    /// PNG decoded from a CCITT fax or JBIG2 image (shrunk when wider than
+    /// `png::MAX_OUT_WIDTH`; `width`/`height` stay the stored size). See `format`.
     pub data: Option<Vec<u8>>,
     /// What `data` is: `"jpeg"`, `"jpx"` or `"png"`.
     pub format: Option<&'static str>,
@@ -470,7 +471,7 @@ fn bilevel_failure(e: super::png::PngError, budget: usize) -> Omitted {
     }
 }
 
-/// A CCITT fax image as a 1-bit PNG (bounded by the per-stream cap and the
+/// A CCITT fax image as a PNG (bounded by the per-stream cap and the
 /// caller's budget), or why not.
 fn ccitt_payload(
     doc: &LoDoc,
@@ -512,7 +513,7 @@ fn jbig2_globals<'a>(
     }
 }
 
-/// A JBIG2 image as a 1-bit PNG (bounded by `jbig2.rs`'s work limits, the
+/// A JBIG2 image as a PNG (bounded by `jbig2.rs`'s work limits, the
 /// per-stream cap and the caller's budget), or why not.
 fn jbig2_payload(
     doc: &LoDoc,

@@ -1,4 +1,4 @@
-//! `CCITTFaxDecode` images (fax-style scans) to 1-bit PNG, for OCR.
+//! `CCITTFaxDecode` images (fax-style scans) to PNG, for OCR (see `png.rs`).
 //!
 //! Old manuals scanned in black and white are usually stored as CCITT Group 4
 //! (sometimes Group 3) images. A vision model cannot read the raw fax stream,
@@ -9,7 +9,7 @@
 
 use lopdf::{Dictionary, Document as LoDoc, Object};
 
-use super::png::{Gray1Writer, PngError, MAX_PIXELS, MAX_SIDE};
+use super::png::{BilevelPngWriter, PngError, MAX_PIXELS, MAX_SIDE};
 
 /// `/DecodeParms` of a `CCITTFaxDecode` filter (ISO 32000-2, 7.4.6).
 pub struct FaxParams {
@@ -84,7 +84,7 @@ pub fn ccitt_to_png(
         return Err(PngError::Undecodable);
     }
     let row_bytes = width.div_ceil(8) as usize;
-    let mut png = Gray1Writer::new(width, max_out);
+    let mut png = BilevelPngWriter::new(width, max_out);
     let mut row = vec![0u8; row_bytes];
     // Fax "black" is ink. The filter emits ink as 0 unless /BlackIs1; the image
     // then shows sample 0 as black unless /Decode inverts it. Either flip turns

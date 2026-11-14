@@ -113,9 +113,13 @@ const { pageCount, pages } = extract_pdf(new Uint8Array(buf), false); // false =
 For scanned pages, `page_images(bytes, pages, budget)` lists each page's
 images with size, placement and page coverage, and returns JPEG and JPEG 2000
 images as their stored bytes (no decoding: a vision/OCR model takes the JPEG
-as is), and decodes bilevel scans to a 1-bit PNG: fax-style CCITT (a 300-dpi
-page is about 70 KB) and JBIG2, with its `/JBIG2Globals` (a 600-dpi page is
-100-300 KB). Flate images are reported with metadata only.
+as is), and decodes bilevel scans to a PNG: fax-style CCITT (a 300-dpi page is
+about 70 KB) and JBIG2, with its `/JBIG2Globals`. Scans up to 4000 px wide stay
+1-bit; wider ones (a 600-dpi page) are shrunk by a whole factor to at most
+4000 px, averaging pixels into 8-bit gray, so they stay within the image limits
+of vision APIs (a 600-dpi Letter page comes out 2582 x 3321, about 230 KB).
+`width`/`height` are the stored image's; read the PNG header for its own size.
+Flate images are reported with metadata only.
 
 Errors are thrown as strings starting with `not_pdf:`, `read:`,
 `unsupported:`, `encrypted:` or `limit:`. A panic traps the instance; create a

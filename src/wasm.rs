@@ -183,7 +183,8 @@ struct ImageOut {
     coverage: f64,
     encodedLen: usize,
     /// `"jpeg"`, `"jpx"` or `"png"` (a CCITT fax or JBIG2 image decoded to
-    /// 1-bit PNG).
+    /// PNG; one wider than 4000 px is shrunk, so read the PNG header for its
+    /// size).
     format: Option<&'static str>,
     data: Option<Bytes>,
     /// Why `data` is absent: `not_encoded` | `not_loaded` | `budget` |
@@ -207,7 +208,7 @@ struct PageImagesResult {
 
 /// Encoded image XObjects of the given 1-based `pages`, in order: JPEG
 /// (`DCTDecode`) and JPEG 2000 (`JPXDecode`) payloads as stored, CCITT fax
-/// and JBIG2 images decoded to 1-bit PNG (`format`), other codecs
+/// and JBIG2 images decoded to PNG (`format`), other codecs
 /// as metadata only (see `reader::images`). Returns `{ pageCount, pages: [{
 /// pageNumber, pageBox, truncated, images: [...] }] }`.
 ///

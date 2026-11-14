@@ -1,4 +1,4 @@
-//! `JBIG2Decode` images (bilevel scans) to 1-bit PNG, for OCR.
+//! `JBIG2Decode` images (bilevel scans) to PNG, for OCR (see `png.rs`).
 //!
 //! Scanned manuals run through Acrobat's "Paper Capture" / "Optimize scanned
 //! PDF" (and many archival scans) store each page as a JBIG2 image, sometimes
@@ -20,7 +20,7 @@
 
 use hayro_jbig2::{DecodeSettings, Decoder, Globals, Page};
 
-use super::png::{Gray1Writer, PngError, MAX_PIXELS, MAX_SIDE};
+use super::png::{BilevelPngWriter, PngError, MAX_PIXELS, MAX_SIDE};
 
 /// Pixels across all regions of one image (a page is usually covered once or
 /// twice: a text region plus generic regions for pictures).
@@ -207,7 +207,7 @@ fn prescan(data: &[u8], work: &mut Work) -> Option<()> {
 
 /// Packs the codec's pixels into PNG rows.
 struct Sink {
-    png: Gray1Writer,
+    png: BilevelPngWriter,
     row: Vec<u8>,
     x: usize,
     width: usize,
@@ -279,7 +279,7 @@ pub fn jbig2_to_png(
         return Err(bad);
     }
     let mut sink = Sink {
-        png: Gray1Writer::new(width, max_out),
+        png: BilevelPngWriter::new(width, max_out),
         row: vec![0; width.div_ceil(8) as usize],
         x: 0,
         width: width as usize,
