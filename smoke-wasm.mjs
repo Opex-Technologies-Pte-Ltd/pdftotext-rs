@@ -1,7 +1,7 @@
 // Phase 1 smoke: load the wasm-pack nodejs pkg, call extract_pdf(bytes, layout),
 // assert the return shape + that text decodes through wasm (WinAnsi smart quote:
 // 0x92 → U+2019 — the gap #1 path). Run:
-//   wasm-pack build --target nodejs --release --out-dir pkg-nodejs && bun smoke-wasm.mjs
+//   wasm-pack build --target nodejs --release --out-dir pkg-nodejs --out-name pdftotext && bun smoke-wasm.mjs
 // (bundler-target glue needs a real bundler; nodejs target runs under bun/node.)
 
 import { readFileSync } from 'node:fs';

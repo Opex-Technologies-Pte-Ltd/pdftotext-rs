@@ -1,5 +1,5 @@
 [package]
-name = "pdftotext"
+name = "pdftotext-rs"
 version = "0.1.0"
 edition = "2021"
 rust-version = "1.88"
@@ -9,6 +9,8 @@ keywords = ["pdf", "text-extraction", "pdftotext", "wasm", "cjk"]
 categories = ["text-processing", "command-line-utilities", "wasm"]
 description = "Clean-room PDF text extraction (ISO 32000-2) that reads equipment manuals correctly. Drop-in for poppler's pdftotext CLI; also builds to WebAssembly."
 license = "Apache-2.0"
+# OPEXMX.md is the monorepo copy's notes; it is not part of the public crate.
+exclude = ["OPEXMX.md", ".github/", "smoke-wasm.mjs", "corpus/pdfs/"]
 
 # Drop-in binary target named exactly `pdftotext`, like poppler's.
 [[bin]]

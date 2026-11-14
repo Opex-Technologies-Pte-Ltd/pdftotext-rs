@@ -22,6 +22,6 @@ jobs:
         run: |
           curl -sSf https://rustwasm.github.io/wasm-pack/installer/init.sh | sh
           wasm-pack build --target bundler --release
-          wasm-pack build --target nodejs --release --out-dir pkg-nodejs
+          wasm-pack build --target nodejs --release --out-dir pkg-nodejs --out-name pdftotext
       - uses: oven-sh/setup-bun@v2
       - run: bun smoke-wasm.mjs

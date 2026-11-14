@@ -1,3 +1,5 @@
 /target
 /pkg
 /pkg-nodejs
+npm/
+build-npm/

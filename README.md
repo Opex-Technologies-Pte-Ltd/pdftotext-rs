@@ -66,7 +66,15 @@ checks every page for glyph garbage.
 
 ## Use it
 
+| | Install | Use |
+|---|---|---|
+| Command line | `cargo install pdftotext-rs` | `pdftotext manual.pdf -` |
+| Rust | `cargo add pdftotext-rs` | `use pdftotext::Document;` |
+| JavaScript / TypeScript | `npm i pdftotext-rs` | `import init, { extract_pdf } from 'pdftotext-rs'` |
+
 ### Command line
+
+The binary is called `pdftotext`, so it can stand in for poppler's.
 
 ```
 pdftotext [-layout|-raw] [-enc UTF-8] [-f N] [-l N] [-nopgbrk] [-q] <file.pdf> [out.txt|-]
@@ -90,6 +98,8 @@ outside the document is an error.
 
 ### Rust
 
+The package is `pdftotext-rs`; the library is imported as `pdftotext`.
+
 ```rust
 let doc = pdftotext::Document::parse(&std::fs::read("manual.pdf")?)?;
 for page in 0..doc.page_count() {
@@ -97,18 +107,25 @@ for page in 0..doc.page_count() {
 }
 ```
 
-### WebAssembly
+### JavaScript / TypeScript (WebAssembly)
 
 ```bash
-wasm-pack build --target web --release      # or --target bundler / nodejs
+npm i pdftotext-rs
 ```
 
 ```js
-import init, { extract_pdf } from './pkg/pdftotext.js';
-await init();
+import init, { extract_pdf } from 'pdftotext-rs';
+await init(); // loads the .wasm once; a no-op in Node
 const { pageCount, pages } = extract_pdf(new Uint8Array(buf), false); // false = reading order, true = layout
 // pages: [{ pageNumber, text, charCount, sectionHeaders }]
 ```
+
+The same import works in Node, Bun, Deno, browsers and bundlers. In a
+Cloudflare Worker, pass the module in: `import wasm from
+'pdftotext-rs/pdftotext_bg.wasm'; await init({ module_or_path: wasm });`.
+No native dependencies and no network calls. To build it yourself:
+`wasm-pack build --target web --release`, or `scripts/build-npm.sh` for the
+npm package.
 
 For scanned pages, `page_images(bytes, pages, budget)` lists each page's
 images with size, placement and page coverage, and returns JPEG and JPEG 2000
@@ -248,7 +265,10 @@ python3 scripts/gen-cjk-cmaps.py <cmap-resources dir>   # regenerate CJK encodin
 `vendor/lopdf` is lopdf 0.44.0 with one fix to its encrypted-document loader
 (it now applies the load filter and releases each object's raw copy as it is
 parsed); it goes away once the fix is released upstream
-([lopdf#671](https://github.com/J-F-Liu/lopdf/pull/671)).
+([lopdf#671](https://github.com/J-F-Liu/lopdf/pull/671)). The crates.io
+package builds against the released lopdf (cargo ignores `[patch]` for
+dependents): text comes out the same, and only encrypted PDFs use more memory
+while loading. The npm package and the release binaries are built with the fix.
 
 ## License
 
